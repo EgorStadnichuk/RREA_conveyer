@@ -23,9 +23,9 @@ class DataReader:
         energy: 1-d numpy array with particles kinetic energy in [MeV]. Number of element corresponds to number of a
         particle.
         position: 2-d numpy array with particles' positions relative to the centre of the cell. position[i, j]:
-        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z).
-        direction: 2-d numpy array with particles' velocity directions. position[i, j]:
-        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z). Positive position[i, 2] means that
+        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z). z goes opposite to the electric field.
+        direction: 2-d numpy array with particles' velocity directions (normed). direction[i, j]:
+        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z). Positive direction[i, 2] means that
         particle goes in the direction opposite to the electric field direction (electrons accelerate in this way).
         """
         self.check_statistics(electric_field=electric_field, cell_length=cell_length, density=density)
@@ -62,3 +62,29 @@ class DataReader:
                             str(cell_length) + ' m.\nCell length should be at least ' +
                                                '3 times bigger than RREA growth length.')
         pass
+
+    @staticmethod
+    def seed_particles_filter(energy, position, direction, seed_energy=5.0):
+        """
+        Returns data arrays without seed particles. Seed particles are found as particles with energy exactly equal to
+        the seed energy.
+        :param energy: 1-d numpy array with particles kinetic energy in [MeV]. Number of element corresponds to number
+        of a particle.
+        :param position: 2-d numpy array with particles' positions relative to the centre of the cell. position[i, j]:
+        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z). z goes opposite to the electric field.
+        :param direction: 2-d numpy array with particles' velocity directions (normed). direction[i, j]:
+        i - number of a particle, j - coordinate (0 for x, 1 for y, 2 for z). Positive direction[i, 2] means that
+        particle goes in the direction opposite to the electric field direction (electrons accelerate in this way).
+        :param seed_energy: the energy of the seed particle in [MeV].
+        :return: filtered energy, position, direction
+        """
+        seed_index = []
+        for i in range(len(energy)):
+            if energy[i] == float(seed_energy):
+                seed_index.append(True)
+            else:
+                seed_index.append(False)
+        energy = np.delete(energy, seed_index)
+        position = np.delete(position, seed_index)
+        direction = np.delete(direction, seed_index)
+        return energy, position, direction
